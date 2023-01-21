@@ -1,6 +1,6 @@
 use std::{io::{stdin, Write}, collections::{HashMap}, fs::File};
 
-use crate::{cpu::Cpu, cpu_helpers::{Instruction, Registers}};
+use crate::{cpu::Cpu, cpu_helpers::{Instruction, CpuState}};
 
 const HISTORY_SIZE: usize = 1000; 
 
@@ -8,7 +8,7 @@ pub struct CpuRunner {
     pub cpu: Cpu,
     pub op_count: usize,
     pub instruction_history: [Instruction; HISTORY_SIZE],
-    pub register_history: [Registers; HISTORY_SIZE],
+    pub register_history: [CpuState; HISTORY_SIZE],
     pub pc_traps: HashMap<u16,String>,
     pub continuous_run: bool,
 }
@@ -16,7 +16,7 @@ pub struct CpuRunner {
 // 
 impl CpuRunner {
     pub fn new() -> Self{
-        CpuRunner { cpu: Cpu::new(), op_count: 0, instruction_history: [Instruction::new(); HISTORY_SIZE], register_history: [Registers::new(); HISTORY_SIZE], pc_traps: HashMap::new(), continuous_run: false }
+        CpuRunner { cpu: Cpu::new(), op_count: 0, instruction_history: [Instruction::new(); HISTORY_SIZE], register_history: [CpuState::new(); HISTORY_SIZE], pc_traps: HashMap::new(), continuous_run: false }
     }
 
     pub fn add_trap(&mut self, loc: u16, message: String) {
@@ -27,7 +27,7 @@ impl CpuRunner {
         loop {
             let ni = self.cpu.get_next_instruction();
             self.instruction_history[self.op_count%HISTORY_SIZE] = ni;
-            let reg = self.cpu.get_register_state();
+            let reg = self.cpu.get_cpu_state();
             self.register_history[self.op_count%HISTORY_SIZE] = reg; 
             
             if self.cpu.pc == self.register_history[(self.op_count as i64 - 1).rem_euclid(HISTORY_SIZE as i64) as usize].pc {
@@ -42,7 +42,7 @@ impl CpuRunner {
             }
 
             if !self.continuous_run {
-                self.print_registers();
+                self.print_cpu_state();
                 println!("Next instruction: {}", ni);
             }
 
@@ -58,8 +58,8 @@ impl CpuRunner {
         }
     }
 
-    pub fn print_registers(&self){
-        println!("Registers: {}", self.cpu.get_register_state());
+    pub fn print_cpu_state(&self){
+        println!("State: {}", self.cpu.get_cpu_state());
     }
     
     pub fn print_instruction(&self, pos: u16){
@@ -141,7 +141,7 @@ impl CpuRunner {
                 self.print_mem_hex(split_cmd);
             }
             else if split_cmd[0].eq("reg") {
-                self.print_registers();
+                self.print_cpu_state();
             }
             else if split_cmd[0].eq("op") {
                 self.print_instruction_cmd(split_cmd);

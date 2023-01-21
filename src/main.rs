@@ -85,7 +85,7 @@ fn main() {
     runner.start_run();
 
     let elapsed = start.elapsed();
-    println!("Run finished! Operations: {}, mem4: {}, time elapsed: {:?}, instruction Hz: {:?}", runner.op_count, runner.cpu.memory[4], elapsed.as_millis(), (runner.op_count as f64)/(elapsed.as_secs_f64()));
-    runner.print_registers();
+    println!("Run finished! Operations: {}, mem4: {}, time elapsed: {:?}, instruction Hz: {:?}, clock speed Hz: {:?}", runner.op_count, runner.cpu.memory[4], elapsed.as_millis(), (runner.op_count as f64)/(elapsed.as_secs_f64()), (runner.cpu.cycles as f64)/(elapsed.as_secs_f64()));
+    runner.print_cpu_state();
     runner.print_hex_table(0x20, 0);
 }

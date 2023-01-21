@@ -2,6 +2,8 @@ use std::fmt;
 
 use strum_macros::{AsRefStr};
 
+use crate::cpu::Cpu;
+
 // pub const RAM_MIRROR1: usize = 0x0800;
 // pub const RAM_MIRROR2: usize = 0x1000;
 // pub const RAM_MIRROR3: usize = 0x1800;
@@ -62,59 +64,60 @@ pub const OP_CODE_MAP: [Operation; 0x100] =
 
 pub const ADDRESS_MODE_MAP: [AddressMode; 0x100] =
 [
-	AddressMode::Implied, AddressMode::XIndexedIndirect, AddressMode::Invalid, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,       // 00
-	AddressMode::Implied, AddressMode::Immediate, AddressMode::Accumulator, AddressMode::Immediate, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                 // 08
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX,      // 10
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX,                 // 18
-	AddressMode::Absolute, AddressMode::XIndexedIndirect, AddressMode::Invalid, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,      // 20
-	AddressMode::Implied, AddressMode::Immediate, AddressMode::Accumulator, AddressMode::Immediate, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                 // 28
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX,      // 30
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX,                 // 38
-	AddressMode::Implied, AddressMode::XIndexedIndirect, AddressMode::Invalid, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,       // 40
-	AddressMode::Implied, AddressMode::Immediate, AddressMode::Accumulator, AddressMode::Immediate, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                 // 48
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX,      // 50
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX,                 // 58
-	AddressMode::Implied, AddressMode::XIndexedIndirect, AddressMode::Invalid, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,       // 60
-    AddressMode::Implied, AddressMode::Immediate, AddressMode::Accumulator, AddressMode::Immediate, AddressMode::Indirect, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                 // 68
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX,      // 70
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX,                 // 78
-	AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,   // 80
-	AddressMode::Implied, AddressMode::Immediate, AddressMode::Implied, AddressMode::Immediate, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                     // 88
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageY, AddressMode::ZeropageY,      // 90
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteY, AddressMode::AbsoluteY,                 // 98
-	AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,   // A0
-	AddressMode::Implied, AddressMode::Immediate, AddressMode::Implied, AddressMode::Immediate, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                     // A8
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageY, AddressMode::ZeropageY,      // B0
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteY, AddressMode::AbsoluteY,                 // B8
-	AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,   // C0
-	AddressMode::Implied, AddressMode::Immediate, AddressMode::Implied, AddressMode::Immediate, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                     // C8
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX,      // D0
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX,                 // D8
-	AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Immediate, AddressMode::XIndexedIndirect, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage, AddressMode::Zeropage,   // E0
-	AddressMode::Implied, AddressMode::Immediate, AddressMode::Implied, AddressMode::Immediate, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute, AddressMode::Absolute,                     // E8
-	AddressMode::Relative, AddressMode::IndirectYIndex, AddressMode::Invalid, AddressMode::IndirectYIndex, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX, AddressMode::ZeropageX,      // F0
-	AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::Implied, AddressMode::AbsoluteY, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX, AddressMode::AbsoluteX                  // F8
+	AddressMode::Imp, AddressMode::Inx, AddressMode::Inv, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // 00
+	AddressMode::Imp, AddressMode::Imm, AddressMode::Acc, AddressMode::Imm, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // 08
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, // 10
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, // 18
+	AddressMode::Abs, AddressMode::Inx, AddressMode::Inv, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // 20
+	AddressMode::Imp, AddressMode::Imm, AddressMode::Acc, AddressMode::Imm, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // 28
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, // 30
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, // 38
+	AddressMode::Imp, AddressMode::Inx, AddressMode::Inv, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // 40
+	AddressMode::Imp, AddressMode::Imm, AddressMode::Acc, AddressMode::Imm, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // 48
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, // 50
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, // 58
+	AddressMode::Imp, AddressMode::Inx, AddressMode::Inv, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // 60
+    AddressMode::Imp, AddressMode::Imm, AddressMode::Acc, AddressMode::Imm, AddressMode::Ind, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // 68
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, // 70
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, // 78
+	AddressMode::Imm, AddressMode::Inx, AddressMode::Imm, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // 80
+	AddressMode::Imp, AddressMode::Imm, AddressMode::Imp, AddressMode::Imm, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // 88
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpy, AddressMode::Zpy, // 90
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Aby, AddressMode::Aby, // 98
+	AddressMode::Imm, AddressMode::Inx, AddressMode::Imm, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // A0
+	AddressMode::Imp, AddressMode::Imm, AddressMode::Imp, AddressMode::Imm, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // A8
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpy, AddressMode::Zpy, // B0
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Aby, AddressMode::Aby, // B8
+	AddressMode::Imm, AddressMode::Inx, AddressMode::Imm, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // C0
+	AddressMode::Imp, AddressMode::Imm, AddressMode::Imp, AddressMode::Imm, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // C8
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, // D0
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, // D8
+	AddressMode::Imm, AddressMode::Inx, AddressMode::Imm, AddressMode::Inx, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, AddressMode::Zpg, // E0
+	AddressMode::Imp, AddressMode::Imm, AddressMode::Imp, AddressMode::Imm, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, AddressMode::Abs, // E8
+	AddressMode::Rel, AddressMode::Iny, AddressMode::Inv, AddressMode::Iny, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, AddressMode::Zpx, // F0
+	AddressMode::Imp, AddressMode::Aby, AddressMode::Imp, AddressMode::Aby, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx, AddressMode::Abx  // F8
 ];
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, AsRefStr)]
 pub enum AddressMode{
-    Accumulator,
-    Absolute,
-    AbsoluteX,
-    AbsoluteY,
-    Immediate,
-    Implied,
-    Indirect,
-    XIndexedIndirect,
-    IndirectYIndex,
-    Relative,
-    Zeropage,
-    ZeropageX,
-    ZeropageY,
-    Invalid
+    Acc,
+    Abs,
+    Abx,
+    Aby,
+    Imm,
+    Imp,
+    Ind,
+    Inx,
+    Iny,
+    Rel,
+    Zpg,
+    Zpx,
+    Zpy,
+    Inv
 }
 
+#[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, AsRefStr)]
 pub enum Operation{
     Adc,
@@ -176,6 +179,20 @@ pub enum Operation{
     Inv
 }
 
+pub enum CycleType {
+    SetValue1,          // Imm: 2, Zpg: 3, Zpx: 4, Abs: 4, Abx: 4*, Aby: 4*, Inx: 6, Iny: 5*
+    SetValue2,          // Acc: 2, Zpg: 5, Zpx: 6, Abs: 6, Abx: 7
+    Branch,             // Rel: 2*
+    Base,               // Imp: 2
+    Jump,               // Abs: 3, Ind: 5
+    JumpSubroutine,     // Abs: 6
+    Break,              // Imp: 7
+    PushStack,          // Imp: 3
+    PullStack,          // Imp: 4
+    Return,             // Imp: 6
+    StoreAccumulator    // Imm: 2, Zpg: 3, Zpx: 4, Abs: 4, Abx: 5, Aby: 5, Inx: 6, Iny: 6  // This is like SetValue1 but assumes worst case for all conditional cycles 
+}
+
 #[derive(Clone, Copy)]
 pub struct Operand{
     pub value: u16, 
@@ -191,46 +208,97 @@ pub struct Instruction {
 }
 
 #[derive(Clone, Copy)]
-pub struct Registers {
-    pub a: u8,   // Arithmetic register
-    pub x: u8,   // X index register
-    pub y: u8,   // Y index register
-    pub pc: u16, // Program counter
-    pub sp: u8,   // Stack pointer
-    pub sr: u8,   // Status register
+pub struct CpuState {
+    pub a: u8,       // Arithmetic register
+    pub x: u8,       // X index register
+    pub y: u8,       // Y index register
+    pub pc: u16,     // Program counter
+    pub sp: u8,      // Stack pointer
+    pub sr: u8,      // Status register
+    pub cycles: u64,
 }
 
 impl AddressMode {
     // How many bytes should be read from the instruction list
     pub fn address_size(&self) -> u8 {
         match &self {
-            AddressMode::Accumulator => 0,
-            AddressMode::Absolute => 2,
-            AddressMode::AbsoluteX => 2,
-            AddressMode::AbsoluteY => 2,
-            AddressMode::Immediate => 1,
-            AddressMode::Implied => 0,
-            AddressMode::Indirect => 2,
-            AddressMode::XIndexedIndirect => 1,
-            AddressMode::IndirectYIndex => 1,
-            AddressMode::Relative => 1,
-            AddressMode::Zeropage => 1,
-            AddressMode::ZeropageX => 1,
-            AddressMode::ZeropageY => 1,
-            AddressMode::Invalid => 0,
+            AddressMode::Acc => 0,
+            AddressMode::Abs => 2,
+            AddressMode::Abx => 2,
+            AddressMode::Aby => 2,
+            AddressMode::Imm => 1,
+            AddressMode::Imp => 0,
+            AddressMode::Ind => 2,
+            AddressMode::Inx => 1,
+            AddressMode::Iny => 1,
+            AddressMode::Rel => 1,
+            AddressMode::Zpg => 1,
+            AddressMode::Zpx => 1,
+            AddressMode::Zpy => 1,
+            AddressMode::Inv => 0,
         }
     }
 }
 
 impl Instruction {
     pub fn new() -> Self {
-        Instruction{ operation: Operation::Inv, address_mode: AddressMode::Invalid, value: 0, cycles: 0 }
+        Instruction{ operation: Operation::Inv, address_mode: AddressMode::Inv, value: 0, cycles: 0 }
     }
 }
 
-impl Registers {
+impl CpuState {
     pub fn new() -> Self {
-        Registers { a: 0, x: 0, y: 0, pc: 0xFFFF, sp: 0, sr: 0 }
+        CpuState { a: 0, x: 0, y: 0, pc: 0xFFFF, sp: 0, sr: 0, cycles: 0 }
+    }
+}
+
+impl CycleType {
+    pub fn GetCycleCount(&self, mode: &AddressMode, address: u16, register: u8) -> u8 {
+        match self {
+            CycleType::SetValue1 => match mode {
+                AddressMode::Imm => 2,
+                AddressMode::Zpg => 3,
+                AddressMode::Zpx => 4,
+                AddressMode::Zpy => 4,
+                AddressMode::Abs => 4,
+                AddressMode::Abx => 4 + if (address + register as u16) & 0xFF00 != address & 0xFF00 {1} else {0}, // add 1 cycle if page break
+                AddressMode::Aby => 4 + if (address + register as u16) & 0xFF00 != address & 0xFF00 {1} else {0}, // add 1 cycle if page break
+                AddressMode::Inx => 6,
+                AddressMode::Iny => 5 + if (address&0xFF) + register as u16 > 0xFF {1} else {0}, // add 1 cycle if page break
+                _ => panic!("Invalid address mode for cycle type")
+            },
+            CycleType::SetValue2 => match mode {
+                AddressMode::Acc => 2,
+                AddressMode::Zpg => 5,
+                AddressMode::Zpx => 6,
+                AddressMode::Abs => 6,
+                AddressMode::Abx => 7,
+                _ => panic!("Invalid address mode for cycle type")
+            },
+            CycleType::Branch => 3 + if (address.wrapping_add((register as i8) as u16)) & 0xFF00 != address & 0xFF00 {1} else {0}, // add 1 cycle if page break. NOTE this is only valid if we branch, 2 if not branched
+            CycleType::Base => 2,
+            CycleType::Jump => match mode {
+                AddressMode::Abs => 3,
+                AddressMode::Ind => 5,
+                _ => panic!("Invalid address mode for cycle type")
+            },
+            CycleType::JumpSubroutine => 6,
+            CycleType::Break => 7,
+            CycleType::PushStack => 3,
+            CycleType::PullStack => 4,
+            CycleType::Return => 6,
+            CycleType::StoreAccumulator => match mode {
+                AddressMode::Imm => 2,
+                AddressMode::Zpg => 3,
+                AddressMode::Zpx => 4,
+                AddressMode::Abs => 4,
+                AddressMode::Abx => 5,
+                AddressMode::Aby => 5,
+                AddressMode::Inx => 6,
+                AddressMode::Iny => 6,
+                _ => panic!("Invalid address mode for cycle type")
+            },
+        }
     }
 }
 
@@ -239,8 +307,8 @@ impl fmt::Display for Instruction {
         write!(f, "{} {} {:04X} #{}", self.operation.as_ref(), self.address_mode.as_ref(), self.value, self.cycles)
     }
 }
-impl fmt::Display for Registers {
+impl fmt::Display for CpuState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PC: {:04X}, A: {:02X}, X: {:02X}, Y: {:02X}, SP: {:02X}, SR: {:02X}, NV-BDIZC: {:08b}", self.pc, self.a, self.x, self.y, self.sp, self.sr, self.sr)
+        write!(f, "PC: {:04X}, A: {:02X}, X: {:02X}, Y: {:02X}, SP: {:02X}, SR: {:02X}, NV-BDIZC: {:08b}, cycles: {}", self.pc, self.a, self.x, self.y, self.sp, self.sr, self.sr, self.cycles)
     }
 }
